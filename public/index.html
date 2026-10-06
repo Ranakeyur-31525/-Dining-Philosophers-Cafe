@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍽️ Dining Philosophers Café — Visual Deadlock, Starvation & Resolution Lab</title>
+  
+  <!-- SEO & Social Meta -->
+  <meta name="description" content="Interactive Dining Philosophers simulator explaining Deadlock, Starvation, and OS solutions with tri-lingual voice narration in English, Hindi, and Gujarati.">
+  <meta name="keywords" content="Dining Philosophers, Operating Systems, Deadlock, Starvation, Concurrency, Mutex, Semaphore, CHARUSAT">
+
+  <!-- Google Fonts: Space Grotesk & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- ======================================================================
+       HEADER & AUDIO CONTROL BAR
+       ====================================================================== -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-wrapper">
+        <div class="brand-icon">🍽️</div>
+        <div>
+          <h1 class="brand-title">
+            Dining Philosophers Café
+            <span class="brand-badge">OS Lab Simulator</span>
+          </h1>
+          <p class="brand-subtitle">Visual Deadlock, Starvation & Resolution Lab • CHARUSAT OS Project</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Audio Narration Controls -->
+        <div class="audio-controls-panel">
+          <button id="btnToggleAudio" class="audio-toggle-btn" title="Toggle browser voice narration">
+            <span id="audioIcon">🔊</span>
+            <span id="audioLabel">Narrator ON</span>
+          </button>
+
+          <select id="langSelect" class="lang-select" title="Select Voice Narration Language">
+            <option value="en-US">🇬🇧 English</option>
+            <option value="hi-IN">🇮🇳 हिंदी (Hindi)</option>
+            <option value="gu-IN">🇮🇳 ગુજરાતી (Gujarati)</option>
+          </select>
+
+          <select id="rateSelect" class="rate-select" title="Voice Speed">
+            <option value="0.85">0.85x</option>
+            <option value="0.95" selected>1.0x</option>
+            <option value="1.15">1.15x</option>
+          </select>
+
+          <button id="btnTestVoice" class="btn-test-voice" title="Test speech synthesis">
+            ▶ Test Voice
+          </button>
+        </div>
+
+        <!-- Mode Switcher: Non-Tech vs OS Engineering -->
+        <div class="mode-switcher">
+          <button id="btnModeStory" class="mode-btn active">👶 Café Story Mode</button>
+          <button id="btnModeTech" class="mode-btn">🎓 OS Engineering Mode</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       SIMULATION ACTION TOOLBAR
+       ====================================================================== -->
+  <main>
+    <section class="controls-bar">
+      <!-- Scenario Trigger Row -->
+      <div class="scenario-buttons-row">
+        <button id="btnDeadlock" class="scenario-btn deadlock">
+          <span>💀</span>
+          <span>Trigger Deadlock</span>
+        </button>
+
+        <button id="btnStarvation" class="scenario-btn starvation">
+          <span>⚠️</span>
+          <span>Trigger Starvation</span>
+        </button>
+
+        <button id="btnResourceOrder" class="scenario-btn resource-order">
+          <span>🛡️</span>
+          <span>Solution 1: Resource Ordering</span>
+        </button>
+
+        <button id="btnWaiter" class="scenario-btn waiter">
+          <span>🧑🍳</span>
+          <span>Solution 2: The Café Waiter</span>
+        </button>
+
+        <button id="btnTanenbaum" class="scenario-btn tanenbaum">
+          <span>🍱</span>
+          <span>Solution 3: All-or-Nothing Monitor</span>
+        </button>
+      </div>
+
+      <!-- Playback Controls Strip -->
+      <div class="playback-strip">
+        <div class="playback-buttons">
+          <button id="btnPlayPause" class="ctrl-btn primary">
+            <span id="playIcon">▶</span>
+            <span id="playLabel">Run Auto</span>
+          </button>
+
+          <button id="btnStep" class="ctrl-btn">
+            <span>⏭</span>
+            <span>Step Forward</span>
+          </button>
+
+          <button id="btnReset" class="ctrl-btn reset">
+            <span>↺</span>
+            <span>Reset Table</span>
+          </button>
+        </div>
+
+        <div class="speed-selector">
+          <span>Speed:</span>
+          <button class="speed-btn" data-speed="0.5">0.5x</button>
+          <button class="speed-btn active" data-speed="1.0">1.0x</button>
+          <button class="speed-btn" data-speed="2.0">2.0x</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         THE MAIN SIMULATION STAGE (TABLE, FRIENDS, FORKS)
+         ====================================================================== -->
+    <section class="simulation-stage-section">
+      <div class="stage-card" id="stageCard">
+        
+        <!-- Live Status Pill Top Left -->
+        <div class="stage-status-header">
+          <div id="statusPill" class="status-pill">
+            <span id="statusIndicatorIcon">🟢</span>
+            <span id="statusIndicatorText">SAFE STATE — NO CYCLE</span>
+          </div>
+        </div>
+
+        <!-- Waiter Character Card (Appears in Waiter Scenario) -->
+        <div id="waiterBadge" class="waiter-card">
+          <div class="waiter-avatar">🧑🍳</div>
+          <div class="waiter-info">
+            <h5>Chef Pierre (Semaphore Waiter)</h5>
+            <p id="waiterCapacityText">Table Capacity: 4 / 4 Seated (Max N-1)</p>
+          </div>
+        </div>
+
+        <!-- The Circular Dining Viewport -->
+        <div class="table-viewport" id="tableViewport">
+          
+          <!-- Mahogany Table Surface -->
+          <div class="dining-table">
+            <!-- Center Hub -->
+            <div id="tableCenterHub" class="table-center-hub">
+              <div id="hubIcon" class="hub-icon">🍝</div>
+              <div id="hubTitle" class="hub-title">CAFÉ PEACEFUL</div>
+              <div id="hubSub" class="hub-sub">5 Friends • 5 Forks<br>Need 2 Forks to Eat</div>
+            </div>
+          </div>
+
+          <!-- Circular Wait SVG Overlay: 5 Curved Vector Arrows -->
+          <svg class="circular-wait-svg" viewBox="0 0 440 440">
+            <defs>
+              <marker id="arrowHead" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                <polygon points="0 0, 6 3, 0 6" fill="#ef4444" />
+              </marker>
+            </defs>
+            <!-- Arc P0 -> P1 -->
+            <path id="waitArc0" class="wait-vector-arrow" d="M 220 40 A 180 180 0 0 1 390 160" marker-end="url(#arrowHead)" />
+            <!-- Arc P1 -> P2 -->
+            <path id="waitArc1" class="wait-vector-arrow" d="M 390 160 A 180 180 0 0 1 325 365" marker-end="url(#arrowHead)" />
+            <!-- Arc P2 -> P3 -->
+            <path id="waitArc2" class="wait-vector-arrow" d="M 325 365 A 180 180 0 0 1 115 365" marker-end="url(#arrowHead)" />
+            <!-- Arc P3 -> P4 -->
+            <path id="waitArc3" class="wait-vector-arrow" d="M 115 365 A 180 180 0 0 1 50 160" marker-end="url(#arrowHead)" />
+            <!-- Arc P4 -> P0 -->
+            <path id="waitArc4" class="wait-vector-arrow" d="M 50 160 A 180 180 0 0 1 220 40" marker-end="url(#arrowHead)" />
+          </svg>
+
+          <!-- 5 Noodle Plates (Steaming Ramen Bowls) -->
+          <div class="noodle-plate plate-0">
+            <div class="plate-content">
+              <div class="steam-wrap">
+                <span class="steam-curl"></span>
+                <span class="steam-curl"></span>
+                <span class="steam-curl"></span>
+              </div>
+              🍜
+            </div>
+          </div>
+
+          <div class="noodle-plate plate-1">
+            <div class="plate-content">
+              <div class="steam-wrap">
+                <span class="steam-curl"></span>
+                <span class="steam-curl"></span>
+                <span class="steam-curl"></span>
+              </div>
+              🍜
+            </div>
+          </div>
+
+          <div class="noodle-plate plate-2">
+            <div class="plate-content">
+              <div class="steam-wrap">
+                <span class="steam-curl"></span>
+                <span class="steam-curl"></span>
+                <span class="steam-curl"></span>
+              </div>
+              🍜
+            </div>
+          </div>
+
+          <div class="noodle-plate plate-3">
+            <div class="plate-content">
+              <div class="steam-wrap">
+                <span class="steam-curl"></span>
+                <span class="steam-curl"></span>
+                <span class="steam-curl"></span>
+              </div>
+              🍜
+            </div>
+          </div>
+
+          <div class="noodle-plate plate-4">
+            <div class="plate-content">
+              <div class="steam-wrap">
+                <span class="steam-curl"></span>
+                <span class="steam-curl"></span>
+                <span class="steam-curl"></span>
+              </div>
+              🍜
+            </div>
+          </div>
+
+          <!-- 5 Forks F0 to F4 (Resting between plates with smooth glide animation) -->
+          <div id="fork0" class="fork-item fork-0" data-fork="0">
+            <div class="fork-body">🍴</div>
+            <div class="fork-tag" id="forkTag0">F0: FREE</div>
+          </div>
+
+          <div id="fork1" class="fork-item fork-1" data-fork="1">
+            <div class="fork-body">🍴</div>
+            <div class="fork-tag" id="forkTag1">F1: FREE</div>
+          </div>
+
+          <div id="fork2" class="fork-item fork-2" data-fork="2">
+            <div class="fork-body">🍴</div>
+            <div class="fork-tag" id="forkTag2">F2: FREE</div>
+          </div>
+
+          <div id="fork3" class="fork-item fork-3" data-fork="3">
+            <div class="fork-body">🍴</div>
+            <div class="fork-tag" id="forkTag3">F3: FREE</div>
+          </div>
+
+          <div id="fork4" class="fork-item fork-4" data-fork="4">
+            <div class="fork-body">🍴</div>
+            <div class="fork-tag" id="forkTag4">F4: FREE</div>
+          </div>
+
+          <!-- 5 Philosophers / Friends -->
+          <!-- P0: Priya -->
+          <div id="phil0" class="philosopher-node p-node-0" data-id="0">
+            <div id="thought0" class="thought-bubble">Thinking deeply... 💭</div>
+            <div class="avatar-circle" id="avatar0">👩🏽‍🎓</div>
+            <div class="philosopher-label">Priya (P0)</div>
+            <div class="meals-badge" id="meals0">Meals: 0</div>
+            <div class="hunger-bar-container">
+              <div class="hunger-bar-fill" id="hunger0"></div>
+            </div>
+          </div>
+
+          <!-- P1: Arjun -->
+          <div id="phil1" class="philosopher-node p-node-1" data-id="1">
+            <div id="thought1" class="thought-bubble">Coding algorithms... 💻</div>
+            <div class="avatar-circle" id="avatar1">👨🏻‍💻</div>
+            <div class="philosopher-label">Arjun (P1)</div>
+            <div class="meals-badge" id="meals1">Meals: 0</div>
+            <div class="hunger-bar-container">
+              <div class="hunger-bar-fill" id="hunger1"></div>
+            </div>
+          </div>
+
+          <!-- P2: Dev -->
+          <div id="phil2" class="philosopher-node p-node-2" data-id="2">
+            <div id="thought2" class="thought-bubble">Pondering art... 🎨</div>
+            <div class="avatar-circle" id="avatar2">👨🏽‍🎨</div>
+            <div class="philosopher-label">Dev (P2)</div>
+            <div class="meals-badge" id="meals2">Meals: 0</div>
+            <div class="hunger-bar-container">
+              <div class="hunger-bar-fill" id="hunger2"></div>
+            </div>
+          </div>
+
+          <!-- P3: Meera -->
+          <div id="phil3" class="philosopher-node p-node-3" data-id="3">
+            <div id="thought3" class="thought-bubble">Formulating physics... 🔬</div>
+            <div class="avatar-circle" id="avatar3">👩🏻‍🔬</div>
+            <div class="philosopher-label">Meera (P3)</div>
+            <div class="meals-badge" id="meals3">Meals: 0</div>
+            <div class="hunger-bar-container">
+              <div class="hunger-bar-fill" id="hunger3"></div>
+            </div>
+          </div>
+
+          <!-- P4: Kabir -->
+          <div id="phil4" class="philosopher-node p-node-4" data-id="4">
+            <div id="thought4" class="thought-bubble">Teaching philosophy... 📚</div>
+            <div class="avatar-circle" id="avatar4">👨🏾‍🏫</div>
+            <div class="philosopher-label">Kabir (P4)</div>
+            <div class="meals-badge" id="meals4">Meals: 0</div>
+            <div class="hunger-bar-container">
+              <div class="hunger-bar-fill" id="hunger4"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Live Spoken Voice Subtitle Ticker -->
+        <div class="stage-voice-ticker">
+          <div class="voice-wave-anim" id="voiceWave">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
+          <div class="voice-ticker-text" id="voiceSubtitleText">
+            Welcome to the Dining Philosophers Café! Click any button above to explore Deadlock, Starvation & Solutions.
+          </div>
+          <div class="voice-ticker-badge" id="voiceLangBadge">🇬🇧 Voice: English</div>
+        </div>
+
+      </div>
+
+      <!-- ==================================================================
+           SIDEBAR PANEL: MANUAL HANDS-ON LAB & TERMINAL LOGS
+           ================================================================== -->
+      <aside class="sidebar-panel">
+        
+        <!-- Hands-On Manual Interaction Box -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">
+              <span>✋</span>
+              <span>Interactive Hands-On Lab</span>
+            </h3>
+            <span class="brand-badge">Manual Mode</span>
+          </div>
+
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
+            Select a friend to manually grab or release forks. Try making all 5 pick left forks to create deadlock yourself!
+          </p>
+
+          <div class="manual-philosopher-select" id="pSelectGroup">
+            <button class="p-select-pill active" data-p="0">P0: Priya</button>
+            <button class="p-select-pill" data-p="1">P1: Arjun</button>
+            <button class="p-select-pill" data-p="2">P2: Dev</button>
+            <button class="p-select-pill" data-p="3">P3: Meera</button>
+            <button class="p-select-pill" data-p="4">P4: Kabir</button>
+          </div>
+
+          <div class="manual-actions-grid">
+            <button id="btnPickLeft" class="btn-manual-act">
+              🍴 Take Left Fork (<span id="manualLeftLabel">F0</span>)
+            </button>
+            <button id="btnPickRight" class="btn-manual-act">
+              🍴 Take Right Fork (<span id="manualRightLabel">F1</span>)
+            </button>
+            <button id="btnManualRelease" class="btn-manual-act release">
+              🥣 Put Down All Forks & Think
+            </button>
+          </div>
+        </div>
+
+        <!-- Real-Time OS Concurrency Log -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">
+              <span>📜</span>
+              <span>Concurrency Event Log</span>
+            </h3>
+            <button id="btnClearLog" style="background: none; border: none; color: var(--text-dim); font-size: 0.72rem; cursor: pointer;">
+              Clear
+            </button>
+          </div>
+
+          <div class="log-stream" id="logStream">
+            <!-- Dynamic entries will appear here -->
+            <div class="log-entry">
+              <span class="log-time">00:00:00</span>
+              <span class="log-text">System initialized. Server connected on port 3000.</span>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+    </section>
+
+    <!-- ======================================================================
+         BOTTOM MULTI-TAB DRAWER: DEEP STORY & TECHNICAL OS RIGOR
+         ====================================================================== -->
+    <section class="educational-drawer">
+      <div class="drawer-card">
+        
+        <!-- Tab Navigation Bar -->
+        <div class="drawer-tabs-header">
+          <button class="tab-btn active" data-tab="tab-story">
+            <span>👶</span>
+            <span>Non-Tech Story & Everyday Metaphor</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-coffman">
+            <span>🎓</span>
+            <span>4 Coffman Conditions Matrix</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-matrix">
+            <span>📊</span>
+            <span>Wait-For Graph & Mutex Status</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-code">
+            <span>💻</span>
+            <span>C / POSIX Pthread Implementation</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-viva">
+            <span>🎯</span>
+            <span>OS Viva & Exam Q&A Master</span>
+          </button>
+        </div>
+
+        <!-- TAB 1: Non-Technical Everyday Metaphor -->
+        <div class="drawer-tab-content active" id="tab-story">
+          <div class="story-grid">
+            <div class="metaphor-card">
+              <div class="metaphor-title">
+                <span>🚦</span>
+                <span>The 4-Way Roundabout Traffic Jam</span>
+              </div>
+              <p class="metaphor-text">
+                Imagine 5 cars enter a circular roundabout at the exact same split-second. Each car blocks the car behind it, while waiting for the car in front of it to move. Nobody has room to drive forward, and nobody can reverse. That complete gridlock is exactly what <strong>Deadlock</strong> is in a computer!
+              </p>
+            </div>
+
+            <div class="metaphor-card">
+              <div class="metaphor-title">
+                <span>🍝</span>
+                <span>The Golden Rule: Two Forks for Noodles</span>
+              </div>
+              <p class="metaphor-text">
+                You cannot eat noodles with just one fork. You need <strong>TWO forks</strong> to twist and lift the noodles into your mouth. If 5 friends sit at the table with only 5 single forks between them, and everyone selfishly clutches one fork in their hand, nobody has two forks. Everyone starves together!
+              </p>
+            </div>
+
+            <div class="metaphor-card">
+              <div class="metaphor-title">
+                <span>💡</span>
+                <span>Everyday 3-Bullet Summary</span>
+              </div>
+              <ul class="metaphor-text" style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px;">
+                <li><strong>Deadlock</strong>: Everyone is stuck waiting for someone else. 0% progress forever.</li>
+                <li><strong>Starvation</strong>: The system is moving, but one unlucky person is ignored and gets zero food.</li>
+                <li><strong>The Fix</strong>: Smart rules (Resource Ordering) or an Arbitrator (The Waiter) ensure everyone takes turns safely!</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: 4 Coffman Conditions Matrix -->
+        <div class="drawer-tab-content" id="tab-coffman">
+          <h3 style="font-size: 1.05rem; margin-bottom: 6px;">The 4 Necessary Coffman Conditions for Deadlock</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+            Deadlock can <em>only</em> occur when ALL 4 conditions hold simultaneously. If an operating system shatters even ONE condition, deadlock becomes mathematically impossible!
+          </p>
+
+          <div class="coffman-matrix">
+            <div class="coffman-card" id="coffmanCardME">
+              <span class="coffman-badge" id="badgeME">ACTIVE</span>
+              <h4 style="font-size: 0.92rem; margin-bottom: 6px;">1. Mutual Exclusion</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">
+                Forks are non-shareable resources. Only 1 philosopher can hold a fork at any given millisecond.
+              </p>
+              <div style="font-size: 0.72rem; color: var(--accent-gold); margin-top: 8px;">
+                <em>Café Analogy: Two people cannot hold hands on the same fork simultaneously.</em>
+              </div>
+            </div>
+
+            <div class="coffman-card" id="coffmanCardHW">
+              <span class="coffman-badge" id="badgeHW">ACTIVE</span>
+              <h4 style="font-size: 0.92rem; margin-bottom: 6px;">2. Hold and Wait</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">
+                Philosophers hold onto their left fork while waiting for the neighbor's right fork to become free.
+              </p>
+              <div style="font-size: 0.72rem; color: #6ee7b7; margin-top: 8px;">
+                <strong>Broken by Solution 3 (Tanenbaum):</strong> Pick up BOTH forks atomically or hold 0!
+              </div>
+            </div>
+
+            <div class="coffman-card" id="coffmanCardNP">
+              <span class="coffman-badge" id="badgeNP">ACTIVE</span>
+              <h4 style="font-size: 0.92rem; margin-bottom: 6px;">3. No Preemption</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">
+                A fork cannot be forcibly ripped out of someone's hand. The holding philosopher must release it voluntarily.
+              </p>
+              <div style="font-size: 0.72rem; color: var(--accent-gold); margin-top: 8px;">
+                <em>OS Analogy: Cannot preempt mutex locks without aborting and rolling back the thread.</em>
+              </div>
+            </div>
+
+            <div class="coffman-card" id="coffmanCardCW">
+              <span class="coffman-badge" id="badgeCW">ACTIVE</span>
+              <h4 style="font-size: 0.92rem; margin-bottom: 6px;">4. Circular Wait</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">
+                A closed dependency cycle exists: P0 waits for P1, P1 for P2, P2 for P3, P3 for P4, and P4 waits for P0!
+              </p>
+              <div style="font-size: 0.72rem; color: #6ee7b7; margin-top: 8px;">
+                <strong>Broken by Solution 1 (Resource Ordering):</strong> P4 picks F0 before F4, breaking the cycle!
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: Wait-For Graph (WFG) & Mutex Matrix -->
+        <div class="drawer-tab-content" id="tab-matrix">
+          <h3 style="font-size: 1.05rem; margin-bottom: 6px;">Concurrency Locks & Mutex Allocation Matrix</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+            Real-time status of Mutex Locks (F0–F4), Thread States, and Resource Allocation Graph (RAG) Edges.
+          </p>
+
+          <div class="data-table-wrapper">
+            <table class="custom-table" id="mutexTable">
+              <thead>
+                <tr>
+                  <th>Fork Mutex</th>
+                  <th>Status</th>
+                  <th>Held By (Owner)</th>
+                  <th>Left Philosopher</th>
+                  <th>Right Philosopher</th>
+                  <th>Contention State</th>
+                </tr>
+              </thead>
+              <tbody id="mutexTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 4: C / POSIX Implementation -->
+        <div class="drawer-tab-content" id="tab-code">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div>
+              <h3 style="font-size: 1.05rem;">Production C (POSIX Threads) Implementation</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Compiled with <code>gcc -pthread dining_philosophers.c -o dining</code>
+              </p>
+            </div>
+            <button id="btnCopyCode" class="btn-copy-code">📋 Copy C Code</button>
+          </div>
+
+          <div class="code-container">
+            <pre><code id="cCodeBlock">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;pthread.h&gt;
+#include &lt;semaphore.h&gt;
+#include &lt;unistd.h&gt;
+
+#define N 5
+#define LEFT (i + 4) % N
+#define RIGHT (i + 1) % N
+
+// Mutex locks for the 5 forks
+pthread_mutex_t forks[N];
+
+// Counting Semaphore for the Waiter solution (Limit to 4 diners)
+sem_t waiter;
+
+// ==============================================================
+// SOLUTION 1: Resource Ordering (Havender's Total Ordering)
+// Break Circular Wait by enforcing lower index pickup first!
+// ==============================================================
+void* philosopher_resource_order(void* arg) {
+    int i = *(int*)arg;
+    int first = (i &lt; RIGHT) ? i : RIGHT;
+    int second = (i &lt; RIGHT) ? RIGHT : i;
+
+    while (1) {
+        printf("Philosopher %d is THINKING 💭\n", i);
+        usleep(100000); // 100ms
+
+        // Total order acquisition: Always acquire smaller index first!
+        pthread_mutex_lock(&forks[first]);
+        pthread_mutex_lock(&forks[second]);
+
+        printf("Philosopher %d is EATING 🍜\n", i);
+        usleep(150000); // 150ms
+
+        pthread_mutex_unlock(&forks[second]);
+        pthread_mutex_unlock(&forks[first]);
+    }
+    return NULL;
+}
+
+// ==============================================================
+// SOLUTION 2: The Café Waiter (Counting Semaphore N-1)
+// Pigeonhole Principle ensures at least 1 diner gets 2 forks!
+// ==============================================================
+void* philosopher_waiter(void* arg) {
+    int i = *(int*)arg;
+    while (1) {
+        printf("Philosopher %d is THINKING 💭\n", i);
+        usleep(100000);
+
+        sem_wait(&waiter); // Room only for 4 diners (N-1)
+        pthread_mutex_lock(&forks[i]);
+        pthread_mutex_lock(&forks[RIGHT]);
+
+        printf("Philosopher %d is EATING 🍜\n", i);
+        usleep(150000);
+
+        pthread_mutex_unlock(&forks[RIGHT]);
+        pthread_mutex_unlock(&forks[i]);
+        sem_post(&waiter); // Signal waiter: left table
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t threads[N];
+    int ids[N];
+
+    sem_init(&waiter, 0, N - 1); // 4 diners max
+    for (int i = 0; i &lt; N; i++) {
+        pthread_mutex_init(&forks[i], NULL);
+        ids[i] = i;
+    }
+
+    for (int i = 0; i &lt; N; i++) {
+        pthread_create(&threads[i], NULL, philosopher_resource_order, &ids[i]);
+    }
+
+    for (int i = 0; i &lt; N; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    return 0;
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 5: OS Viva & Exam Master -->
+        <div class="drawer-tab-content" id="tab-viva">
+          <h3 style="font-size: 1.05rem; margin-bottom: 6px;">OS Viva & Exam Preparation Bank (Frequently Asked Questions)</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+            Click any question to view the model answer expected by university professors and technical interviewers.
+          </p>
+
+          <div class="viva-accordion">
+            <div class="viva-item open">
+              <div class="viva-question">
+                <span>Q1. What is the fundamental difference between Deadlock and Starvation?</span>
+                <span>▾</span>
+              </div>
+              <div class="viva-answer">
+                In <strong>Deadlock</strong>, every thread is blocked indefinitely in a circular wait; zero CPU progress is made system-wide (complete freeze). In <strong>Starvation (Livelock)</strong>, system progress is actively being made (some philosophers eat repeatedly), but one specific victim is perpetually deprived of both resources and never gets to execute.
+              </div>
+            </div>
+
+            <div class="viva-item">
+              <div class="viva-question">
+                <span>Q2. Why does Havender’s Resource Ordering mathematically prevent Deadlock?</span>
+                <span>▾</span>
+              </div>
+              <div class="viva-answer">
+                By enforcing a strict total order $R_0 &lt; R_1 &lt; \dots &lt; R_n$ and requiring every thread to request lower-indexed resources before higher-indexed ones, a directed cycle in the Resource Allocation Graph (RAG) is mathematically impossible. A cycle requires at least one edge pointing from a higher index back to a lower index without prior acquisition, which the algorithm explicitly forbids.
+              </div>
+            </div>
+
+            <div class="viva-item">
+              <div class="viva-question">
+                <span>Q3. How does the Café Waiter solution utilize the Pigeonhole Principle?</span>
+                <span>▾</span>
+              </div>
+              <div class="viva-answer">
+                If $N$ philosophers compete for $N$ forks, each holding 1 fork results in deadlock. By limiting table admittance to at most $N - 1$ philosophers (e.g. 4 diners for 5 forks), the <strong>Pigeonhole Principle</strong> dictates that at least one diner must receive $\lceil 5 / 4 \rceil = 2$ forks. That diner will successfully eat, release both forks, and allow all waiting peers to finish.
+              </div>
+            </div>
+
+            <div class="viva-item">
+              <div class="viva-question">
+                <span>Q4. Which Coffman condition does Tanenbaum's All-or-Nothing Monitor break?</span>
+                <span>▾</span>
+              </div>
+              <div class="viva-answer">
+                It breaks <strong>Hold and Wait</strong>! Under Tanenbaum's algorithm, a philosopher tests both neighbors before touching any fork. If both forks are free, both are acquired atomically. If either fork is busy, the philosopher touches neither fork (holds 0 resources while waiting).
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- ======================================================================
+       FOOTER
+       ====================================================================== -->
+  <footer class="app-footer">
+    <p>
+      🍽️ <strong>Dining Philosophers Café</strong> — Visual Deadlock, Starvation & Resolution Lab<br>
+      CHARUSAT Semester 5 Operating Systems Project • Tri-Lingual Voice Narration (English, Hindi, Gujarati)
+    </p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/audioSynth.js"></script>
+  <script src="/js/speechNarrator.js"></script>
+  <script src="/js/algorithms/deadlock.js"></script>
+  <script src="/js/algorithms/starvation.js"></script>
+  <script src="/js/algorithms/resourceOrder.js"></script>
+  <script src="/js/algorithms/waiter.js"></script>
+  <script src="/js/algorithms/tanenbaum.js"></script>
+  <script src="/js/simulationEngine.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

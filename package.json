@@ -1,0 +1,41 @@
+{
+  "name": "dining-philosophers-cafe",
+  "version": "1.0.0",
+  "description": "Dining Philosophers Café — Visual Deadlock, Starvation & Resolution Lab with Tri-lingual Voice Narration",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "node server.js",
+    "server": "node server.js",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "operating-systems",
+    "dining-philosophers",
+    "deadlock",
+    "starvation",
+    "concurrency",
+    "synchronization",
+    "visualization"
+  ],
+  "author": "OS Project Team - CHARUSAT",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "lucide-react": "^1.49.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^3.4.19",
+    "vite": "^8.3.0"
+  }
+}

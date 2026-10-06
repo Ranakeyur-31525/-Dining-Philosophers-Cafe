@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dining Philosophers Café — Comprehensive OS Lab & Project Report</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 16mm 18mm 16mm;
+    }
+    
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.55;
+      color: #1e293b;
+      background: #ffffff;
+      font-size: 10.5pt;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Cover / Hero Header */
+    .cover-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 32px 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+    }
+
+    .cover-tag {
+      display: inline-block;
+      background: rgba(99, 102, 241, 0.25);
+      border: 1px solid rgba(165, 180, 252, 0.4);
+      color: #c7d2fe;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 8.5pt;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .cover-title {
+      font-size: 22pt;
+      font-weight: 800;
+      line-height: 1.2;
+      margin: 0 0 10px 0;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+
+    .cover-subtitle {
+      font-size: 11pt;
+      color: #cbd5e1;
+      margin: 0 0 18px 0;
+      font-weight: 400;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      padding-top: 14px;
+      font-size: 8.5pt;
+    }
+
+    .meta-item strong {
+      display: block;
+      color: #94a3b8;
+      font-size: 7.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .meta-item span {
+      color: #f8fafc;
+      font-weight: 600;
+    }
+
+    /* Headings */
+    h1, h2, h3, h4 {
+      color: #0f172a;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 16pt;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-top: 26px;
+      color: #1e1b4b;
+    }
+
+    h2 {
+      font-size: 13pt;
+      color: #312e81;
+      margin-top: 16px;
+      border-left: 4px solid #4f46e5;
+      padding-left: 10px;
+    }
+
+    h3 {
+      font-size: 11pt;
+      color: #334155;
+      margin-top: 12px;
+    }
+
+    p {
+      margin: 0 0 10px 0;
+      text-align: justify;
+    }
+
+    /* Page Breaks */
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    .no-break {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px 0;
+      font-size: 9pt;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    /* Callout Boxes */
+    .callout {
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      font-size: 9.5pt;
+      border-left: 4px solid;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .callout-blue {
+      background: #eff6ff;
+      border-color: #3b82f6;
+      color: #1e3a8a;
+    }
+
+    .callout-green {
+      background: #ecfdf5;
+      border-color: #10b981;
+      color: #064e3b;
+    }
+
+    .callout-amber {
+      background: #fffbeb;
+      border-color: #f59e0b;
+      color: #78350f;
+    }
+
+    .callout-purple {
+      background: #faf5ff;
+      border-color: #8b5cf6;
+      color: #4c1d95;
+    }
+
+    .callout-rose {
+      background: #fff1f2;
+      border-color: #f43f5e;
+      color: #881337;
+    }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Code Blocks */
+    pre, code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 8.5pt;
+      line-height: 1.45;
+      overflow-x: auto;
+      margin: 10px 0 14px 0;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      border: 1px solid #334155;
+    }
+
+    code:not(pre code) {
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 8.5pt;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* Cards & Grids */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 12px 0;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .card {
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .card h4 {
+      margin: 0 0 6px 0;
+      font-size: 10pt;
+      color: #1e293b;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+    .badge-purple { background: #f3e8ff; color: #6b21a8; }
+
+    /* Diagrams */
+    .diagram-container {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      margin: 12px 0;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Q&A Viva */
+    .viva-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #6366f1;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .viva-q {
+      font-weight: 700;
+      color: #1e1b4b;
+      margin-bottom: 4px;
+      font-size: 9.5pt;
+    }
+
+    .viva-a {
+      color: #334155;
+      font-size: 9pt;
+      margin: 0;
+    }
+
+    /* Footer / Running Header */
+    .doc-footer {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+      margin-top: 24px;
+      font-size: 8pt;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER / HEADER -->
+  <div class="cover-card">
+    <div class="cover-tag">CHARUSAT • Dep. of Computer Science & Engineering • SEM 5</div>
+    <div class="cover-title">Dining Philosophers Café</div>
+    <div class="cover-subtitle">Visual Deadlock, Starvation & Concurrency Workbench with Tri-Lingual Audio Narration</div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <strong>Course</strong>
+        <span>Operating Systems (CS301)</span>
+      </div>
+      <div class="meta-item">
+        <strong>Author / Lead</strong>
+        <span>Keyur Rana (Ranakeyur-31525)</span>
+      </div>
+      <div class="meta-item">
+        <strong>Repository</strong>
+        <span>-Dining-Philosophers-Cafe</span>
+      </div>
+      <div class="meta-item">
+        <strong>Status & Stack</strong>
+        <span>Fullstack (React 19 + Express)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE OF CONTENTS & ABSTRACT -->
+  <div class="callout callout-blue no-break">
+    <div class="callout-title">📖 Executive Project Abstract</div>
+    <p>
+      The <strong>Dining Philosophers Problem</strong> is an iconic synchronization benchmark formulated by Edsger W. Dijkstra in 1965 to model resource contention, concurrency hazards, and deadlock vulnerability in multiprocessing operating systems. <strong>Dining Philosophers Café</strong> is a state-of-the-art interactive fullstack educational laboratory engineered with React 19, Tailwind CSS, Lucide icons, Node.js & Express SSE backend, and HTML5 Web Speech & Web Audio APIs.
+    </p>
+    <p>
+      This document delivers a complete theoretical and practical project dissection: exploring all 4 Coffman conditions, Havender's Resource Ordering hierarchy proof, Starvation conspiracy mechanisms with fair FIFO aging resolution, POSIX Mutexes & Dijkstra Invariant verification across 10,000 cycles, and comprehensive viva-voce preparation.
+    </p>
+  </div>
+
+  <!-- SECTION 1: PROBLEM FORMULATION -->
+  <h1>1. Classical Problem Formulation & Theoretical Foundations</h1>
+  <p>
+    Five philosophers sit around a circular table. In front of each is a bowl of noodles. Between every adjacent pair of philosophers lies exactly one shared fork (total 5 forks: $F_0, F_1, F_2, F_3, F_4$).
+  </p>
+  
+  <div class="diagram-container">
+    <svg width="460" height="230" viewBox="0 0 500 250" style="margin: 0 auto; display: block;">
+      <!-- Table -->
+      <circle cx="250" cy="125" r="90" fill="#f8fafc" stroke="#334155" stroke-width="3" stroke-dasharray="4 2"/>
+      <circle cx="250" cy="125" r="30" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+      <text x="250" y="130" font-size="11" font-weight="bold" fill="#475569" text-anchor="middle">Noodles 🍜</text>
+
+      <!-- 5 Philosophers (P0..P4) -->
+      <!-- P0 Top -->
+      <circle cx="250" cy="20" r="18" fill="#4f46e5"/>
+      <text x="250" y="24" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">P0</text>
+      <!-- P1 Right Top -->
+      <circle cx="355" cy="65" r="18" fill="#4f46e5"/>
+      <text x="355" y="69" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">P1</text>
+      <!-- P2 Right Bottom -->
+      <circle cx="320" cy="195" r="18" fill="#4f46e5"/>
+      <text x="320" y="199" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">P2</text>
+      <!-- P3 Left Bottom -->
+      <circle cx="180" cy="195" r="18" fill="#4f46e5"/>
+      <text x="180" y="199" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">P3</text>
+      <!-- P4 Left Top -->
+      <circle cx="145" cy="65" r="18" fill="#4f46e5"/>
+      <text x="145" y="69" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">P4</text>
+
+      <!-- 5 Forks (F0..F4) -->
+      <!-- F0 between P4 and P0 -->
+      <rect x="190" y="38" width="16" height="6" rx="3" fill="#f59e0b" transform="rotate(-30 198 41)"/>
+      <text x="190" y="34" font-size="8" font-weight="bold" fill="#d97706">F0</text>
+
+      <!-- F1 between P0 and P1 -->
+      <rect x="295" y="38" width="16" height="6" rx="3" fill="#f59e0b" transform="rotate(30 303 41)"/>
+      <text x="306" y="34" font-size="8" font-weight="bold" fill="#d97706">F1</text>
+
+      <!-- F2 between P1 and P2 -->
+      <rect x="345" y="130" width="16" height="6" rx="3" fill="#f59e0b" transform="rotate(90 353 133)"/>
+      <text x="368" y="136" font-size="8" font-weight="bold" fill="#d97706">F2</text>
+
+      <!-- F3 between P2 and P3 -->
+      <rect x="242" y="212" width="16" height="6" rx="3" fill="#f59e0b"/>
+      <text x="250" y="232" font-size="8" font-weight="bold" fill="#d97706" text-anchor="middle">F3</text>
+
+      <!-- F4 between P3 and P4 -->
+      <rect x="140" y="130" width="16" height="6" rx="3" fill="#f59e0b" transform="rotate(90 148 133)"/>
+      <text x="122" y="136" font-size="8" font-weight="bold" fill="#d97706">F4</text>
+    </svg>
+    <div style="font-size: 8pt; color: #64748b; margin-top: 4px;">Figure 1: Circular Dining Philosophers Topology ($N=5$ Processors and Shared Mutex Resources)</div>
+  </div>
+
+  <h2>1.1 State Transitions of a Philosopher</h2>
+  <p>
+    A philosopher $P_i$ switches between three classic lifecycle states:
+  </p>
+  <ul>
+    <li><strong>THINKING:</strong> Independent CPU computing; requires no external resources.</li>
+    <li><strong>HUNGRY:</strong> Concurrently competing to acquire both left fork $F_i$ and right fork $F_{(i+1)\%5}$.</li>
+    <li><strong>EATING:</strong> Entering the Critical Section; holding both forks exclusively, consuming noodles, and eventually releasing both forks back to the table.</li>
+  </ul>
+
+  <h2>1.2 The Four Coffman Conditions (1971)</h2>
+  <p>
+    Deadlock in any computing system can arise if and only if all four conditions hold simultaneously:
+  </p>
+  
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 18%;">Condition</th>
+        <th style="width: 25%;">Formal Definition</th>
+        <th style="width: 27%;">Café Metaphor</th>
+        <th style="width: 30%;">Mitigation in this Project</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. Mutual Exclusion</strong></td>
+        <td>Each resource unit can be assigned to at most one process at any instant.</td>
+        <td>Only one person can hold a physical fork; two diners cannot grab the same fork simultaneously.</td>
+        <td>Inherent to physical forks; protected by POSIX binary mutex <code>pthread_mutex_t</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>2. Hold and Wait</strong></td>
+        <td>A process currently holding at least one resource is permitted to request other resources held by peers.</td>
+        <td>Holding your left fork tightly in your hand while stubbornly waiting for your neighbor to release their fork.</td>
+        <td><strong>Tanenbaum Monitor:</strong> Acquire BOTH forks atomically (all-or-nothing), or release current holds.</td>
+      </tr>
+      <tr>
+        <td><strong>3. No Preemption</strong></td>
+        <td>Resources cannot be forcibly confiscated; they must be released voluntarily by the holding process.</td>
+        <td>You cannot physically slap the fork out of your neighbor's hand! They must put it down willingly.</td>
+        <td><strong>Preemption Protocol:</strong> If the 2nd fork cannot be acquired within a timeout, drop the 1st fork!</td>
+      </tr>
+      <tr>
+        <td><strong>4. Circular Wait</strong></td>
+        <td>A closed sequence of processes $\{P_0, P_1, \dots, P_{n-1}\}$ exists where each $P_i$ is waiting for a resource held by $P_{(i+1)\%n}$.</td>
+        <td>$P_0 \to F_1 \to P_1 \to F_2 \to P_2 \to F_3 \to P_3 \to F_4 \to P_4 \to F_0 \to P_0$. A closed ring of blocked threads!</td>
+        <td><strong>Havender's Resource Ordering:</strong> Enforce strict global hierarchy $F_0 < F_1 < F_2 < F_3 < F_4$. The cycle cannot form!</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- PAGE BREAK -->
+  <div class="page-break"></div>
+
+  <!-- SECTION 2: ALGORITHMS & MATHEMATICAL PROOFS -->
+  <h1>2. Algorithmic Solutions & Formal Proofs</h1>
+
+  <h2>2.1 The Naive Greedy Protocol (Guaranteed Deadlock)</h2>
+  <p>
+    In the naive protocol, each philosopher follows the identical symmetrical program:
+  </p>
+  <pre><code>// Symmetrical Naive Algorithm (Vulnerable to Deadlock)
+void philosopher(int i) {
+    while (true) {
+        think();
+        pthread_mutex_lock(&fork[i]);                 // Pick up Left Fork
+        pthread_mutex_lock(&fork[(i + 1) % 5]);       // Pick up Right Fork
+        eat();
+        pthread_mutex_unlock(&fork[(i + 1) % 5]);     // Release Right Fork
+        pthread_mutex_unlock(&fork[i]);               // Release Left Fork
+    }
+}</code></pre>
+  
+  <div class="callout callout-rose no-break">
+    <div class="callout-title">⚠️ The Deadlock Execution Trace</div>
+    <p>
+      Under simultaneous context switching (e.g., at time $t_0$), all 5 philosophers execute statement 1 and acquire their left fork.
+      At time $t_1$, all 5 attempt statement 2 to acquire their right fork. Since every fork is already locked, every philosopher blocks indefinitely. System throughput drops to <strong>0%</strong>, and the Wait-For Graph contains the cycle:
+      <br/>
+      <code>P0 → P1 → P2 → P3 → P4 → P0</code>.
+    </p>
+  </div>
+
+  <h2>2.2 Havender's Total Resource Ordering (Hierarchy Protocol)</h2>
+  <p>
+    Proposed by J. W. Havender in 1968, this solution breaks <strong>Circular Wait</strong> by assigning a global strict total order to resources: $R(F_i) = i$.
+    Each philosopher is required to request their assigned forks in <em>strictly ascending order</em>:
+    $$\text{First fork} = \min(F_{\text{left}}, F_{\text{right}}), \quad \text{Second fork} = \max(F_{\text{left}}, F_{\text{right}})$$
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Philosopher</th>
+        <th>Left Fork</th>
+        <th>Right Fork</th>
+        <th>First Acquired ($\min$)</th>
+        <th>Second Acquired ($\max$)</th>
+        <th>Effect</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Priya (P0)</strong></td>
+        <td>$F_0$</td>
+        <td>$F_1$</td>
+        <td><strong style="color: #4f46e5;">$F_0$</strong></td>
+        <td>$F_1$</td>
+        <td>Standard order</td>
+      </tr>
+      <tr>
+        <td><strong>Arjun (P1)</strong></td>
+        <td>$F_1$</td>
+        <td>$F_2$</td>
+        <td><strong style="color: #4f46e5;">$F_1$</strong></td>
+        <td>$F_2$</td>
+        <td>Standard order</td>
+      </tr>
+      <tr>
+        <td><strong>Dev (P2)</strong></td>
+        <td>$F_2$</td>
+        <td>$F_3$</td>
+        <td><strong style="color: #4f46e5;">$F_2$</strong></td>
+        <td>$F_3$</td>
+        <td>Standard order</td>
+      </tr>
+      <tr>
+        <td><strong>Meera (P3)</strong></td>
+        <td>$F_3$</td>
+        <td>$F_4$</td>
+        <td><strong style="color: #4f46e5;">$F_3$</strong></td>
+        <td>$F_4$</td>
+        <td>Standard order</td>
+      </tr>
+      <tr style="background: #fdf2f8;">
+        <td><strong>Kabir (P4)</strong></td>
+        <td>$F_4$</td>
+        <td>$F_0$</td>
+        <td><strong style="color: #be185d;">$F_0$ (Inverted!)</strong></td>
+        <td>$F_4$</td>
+        <td><strong>P4 acquires lower fork F0 first!</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-green no-break">
+    <div class="callout-title">📐 Formal Mathematical Proof of Deadlock-Freedom</div>
+    <p><strong>Theorem:</strong> Havender's Resource Ordering protocol guarantees that a cyclic wait cannot exist.</p>
+    <p>
+      <strong>Proof by Contradiction:</strong><br/>
+      Assume a deadlock exists under this protocol. Then there must exist a directed cycle in the Wait-For Graph:
+      $$P_0 \to P_1 \to P_2 \to \dots \to P_k \to P_0$$
+      where $P_i \to P_{i+1}$ denotes that $P_i$ is blocked waiting for a resource held by $P_{i+1}$.<br/>
+      Let $r(P_i, R)$ be the index of resource $R$ requested by $P_i$ while holding another resource. Under the protocol, a process holding resource $a$ can only request resource $b$ if $b > a$.<br/>
+      Therefore:
+      $$\text{Index}(R_0) < \text{Index}(R_1) < \text{Index}(R_2) < \dots < \text{Index}(R_k) < \text{Index}(R_0)$$
+      This implies $\text{Index}(R_0) < \text{Index}(R_0)$, which is a logical and mathematical contradiction.<br/>
+      Hence, no circular wait can form. The system is provably deadlock-free. $\blacksquare$
+    </p>
+  </div>
+
+  <h2>2.3 The Waiter Arbitrator Protocol (Pigeonhole Principle)</h2>
+  <p>
+    A central arbitrator (the café waiter) introduces a Counting Semaphore initialized to $N - 1 = 4$.
+    At most 4 philosophers are granted permission to sit at the table simultaneously:
+  </p>
+  <div class="callout callout-purple no-break">
+    <div class="callout-title">🕊️ Pigeonhole Principle Deduction</div>
+    <p>
+      By the Pigeonhole Principle, if $k \le 4$ philosophers compete for $N = 5$ shared forks, the average number of available forks per seated diner is:
+      $$\frac{5}{4} = 1.25 > 1$$
+      Consequently, at least one seated philosopher is guaranteed to acquire both their left and right forks, eat, and release them. Deadlock is impossible.
+    </p>
+  </div>
+
+  <!-- PAGE BREAK -->
+  <div class="page-break"></div>
+
+  <!-- SECTION 3: STARVATION & FAIRNESS -->
+  <h1>3. Starvation (Livelock) & Fair Aging Resolution</h1>
+  <p>
+    Deadlock and Starvation are fundamentally distinct concurrency hazards:
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 25%;">Metric / Aspect</th>
+        <th style="width: 37%;">Deadlock</th>
+        <th style="width: 38%;">Starvation (Livelock)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>System State</strong></td>
+        <td>Complete permanent freeze; zero system-wide progress.</td>
+        <td>System makes continuous progress, but one or more threads never make progress.</td>
+      </tr>
+      <tr>
+        <td><strong>Thread Participation</strong></td>
+        <td>All threads in the cycle are blocked waiting.</td>
+        <td>Some aggressive threads repeatedly succeed; the victim thread is starved.</td>
+      </tr>
+      <tr>
+        <td><strong>CPU Utilization</strong></td>
+        <td>0% (all threads in blocked wait state).</td>
+        <td>Active (threads eating, thinking, and context-switching).</td>
+      </tr>
+      <tr>
+        <td><strong>Detection Method</strong></td>
+        <td>Cycle in Wait-For Graph (Tarjan's algorithm / DFS).</td>
+        <td>Wait-time threshold timers ($\Delta t > t_{\text{threshold}}$).</td>
+      </tr>
+      <tr>
+        <td><strong>Resolution</strong></td>
+        <td>Deadlock prevention, preemption, process termination.</td>
+        <td>Fair FIFO queues, Aging priority schemes, lottery scheduling.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3.1 The Neighbor Conspiracy Scenario</h2>
+  <p>
+    Consider philosopher <strong>Arjun (P1)</strong> sitting between <strong>Priya (P0)</strong> and <strong>Dev (P2)</strong>.
+    P0 and P2 alternate eating in an aggressive, out-of-phase cycle:
+  </p>
+  <ol>
+    <li>At $t_0$, P0 eats using forks $F_0$ and $F_1$. P1 is hungry but blocked because $F_1$ is held by P0.</li>
+    <li>At $t_1$, P0 finishes eating and releases $F_1$. But simultaneously, P2 begins eating using $F_2$ and $F_3$!</li>
+    <li>Now, P1 attempts to eat, but fork $F_2$ is held by P2!</li>
+    <li>At $t_2$, P2 finishes eating and releases $F_2$, but P0 immediately grabs $F_1$ again!</li>
+  </ol>
+  <p>
+    In this infinite ping-pong conspiracy, forks $F_1$ and $F_2$ are never simultaneously free. P1 starves indefinitely despite the system operating at full throughput!
+  </p>
+
+  <h2>3.2 Fair FIFO Aging Queue Solution</h2>
+  <div class="callout callout-green no-break">
+    <div class="callout-title">🛡️ How the FIFO Aging Mechanism Solves Starvation</div>
+    <p>
+      In Fair Mode, whenever a philosopher becomes hungry, they take a timestamped queue ticket.
+      When neighbor P0 releases fork $F_1$, the system checks the queue:
+      <strong>P1 has a higher wait-time priority than P0!</strong>
+      P0 is prohibited from re-entering the table until P1's request is serviced.
+      Wait-time aging dynamically escalates P1's priority, guaranteeing bounded wait time:
+      $$\text{WaitTime}(P_i) \le 2 \times T_{\text{eat}}$$
+    </p>
+  </div>
+
+  <!-- SECTION 4: FULLSTACK ARCHITECTURE & TECH STACK -->
+  <h1>4. System Architecture & Technology Stack</h1>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>💻 Frontend Application</h4>
+      <p style="font-size: 8.5pt; color: #475569;">
+        <strong>React 19 + Vite:</strong> Componentized UI architecture using modern hooks (<code>useDeadlockSim</code>, <code>useSimulation</code>).<br/>
+        <strong>Tailwind CSS:</strong> Custom theme tokens, dark mode classes, glowing indicators, animated SVGs.<br/>
+        <strong>Lucide React:</strong> Crisp vector iconography for all concurrency states and controls.
+      </p>
+    </div>
+    <div class="card">
+      <h4>⚙️ Backend & SSE Server</h4>
+      <p style="font-size: 8.5pt; color: #475569;">
+        <strong>Node.js & Express:</strong> High-performance server on port 3000.<br/>
+        <strong>Server-Sent Events (SSE):</strong> Real-time unidirectional streaming from <code>/api/events</code>.<br/>
+        <strong>REST APIs:</strong> Endpoints for manual simulation step control and viva educational content.
+      </p>
+    </div>
+    <div class="card">
+      <h4>🗣️ Tri-Lingual Audio Engine</h4>
+      <p style="font-size: 8.5pt; color: #475569;">
+        <strong>Web Speech API:</strong> Native <code>window.speechSynthesis</code> supporting English (<code>en-US</code>), Hindi (<code>hi-IN</code>), and Gujarati (<code>gu-IN</code>).<br/>
+        Real-time audio ticker displaying spoken subtitles and audio state.
+      </p>
+    </div>
+    <div class="card">
+      <h4>🎵 Web Audio API Synthesizer</h4>
+      <p style="font-size: 8.5pt; color: #475569;">
+        <strong>Hardware Synthesis:</strong> Pure sinusoidal oscillator synthesis without external audio files.<br/>
+        Distinct sound signatures for fork pickup (800Hz), eating chomps (240Hz), deadlock buzzer (120Hz saw), and victory fanfare.
+      </p>
+    </div>
+  </div>
+
+  <!-- PAGE BREAK -->
+  <div class="page-break"></div>
+
+  <!-- SECTION 5: THE 6 INTERACTIVE LAB MODULES -->
+  <h1>5. Walkthrough of the 6 Laboratory Modules</h1>
+
+  <h2>5.1 Module 1: Dashboard (`/`)</h2>
+  <p>
+    The command center of the laboratory. Provides a comprehensive hero section, problem overview, interactive dining table preview, and high-level architecture diagram. Introduces users to the café theme with avatars: Priya (Student), Arjun (Developer), Dev (Artist), Meera (Scientist), and Kabir (Professor).
+  </p>
+
+  <h2>5.2 Module 2: Deadlock Lab (`/deadlock`)</h2>
+  <p>
+    An interactive 10-step step-by-step simulator detailing exactly how deadlock develops tick by tick:
+  </p>
+  <ul>
+    <li><strong>Live Directed Wait-For Graph (WFG):</strong> Visualizes processes as nodes and held/requested resources as directed edges, highlighting the red cycle when deadlock occurs.</li>
+    <li><strong>Live Coffman Condition Matrix:</strong> Real-time badges for Mutual Exclusion, Hold and Wait, No Preemption, and Circular Wait.</li>
+    <li><strong>Step Scrubbing:</strong> Play, pause, step forward, and reset controls allowing students to analyze each micro-transition.</li>
+  </ul>
+
+  <h2>5.3 Module 3: Solution Lab (`/solution`)</h2>
+  <p>
+    Side-by-side comparative simulation comparing the <strong>Naive Greedy Protocol</strong> against <strong>Havender's Resource Ordering Protocol</strong>.
+    Demonstrates in real time how Kabir (P4) picking fork $F_0$ first prevents the circular wait from closing, freeing $F_4$ for Meera (P3) to eat safely.
+  </p>
+
+  <h2>5.4 Module 4: Starvation Lab (`/starvation`)</h2>
+  <p>
+    Simulates the subtle distinction between Deadlock (system frozen) and Starvation (one thread frozen while others eat).
+    Features a live <strong>Hunger Meter (0–100%)</strong> for Arjun (P1), an interactive conspiracy generator, and a toggleable <strong>Fair FIFO Queue</strong> that enforces fairness and resets hunger levels to 0%.
+  </p>
+
+  <h2>5.5 Module 5: Synchronization Lab (`/synchronization`)</h2>
+  <p>
+    Deep dive into OS-level concurrency primitives:
+  </p>
+  <ul>
+    <li><strong>POSIX Mutex Visualizer:</strong> Displays <code>pthread_mutex_lock()</code> and <code>unlock()</code> operations on each fork.</li>
+    <li><strong>Counting Semaphore Panel:</strong> Models the Waiter Arbitrator with permit counting ($k=4$).</li>
+    <li><strong>Dijkstra Invariant Automated Stress Test:</strong> Runs an automated 10,000-iteration Monte Carlo stress test checking that no two adjacent philosophers eat simultaneously ($\sum \text{eating}(P_i, P_{i+1}) = 0$).</li>
+  </ul>
+
+  <h2>5.6 Module 6: Telemetry & Lab Report (`/results`)</h2>
+  <p>
+    Aggregates full-session telemetry including total meals eaten, throughput (meals/sec), deadlock incident counts, starvation occurrences, and a printable academic lab evaluation sheet ready for submission.
+  </p>
+
+  <!-- SECTION 6: VIVA VOCE & INTERVIEW QUESTIONS -->
+  <h1>6. Operating System Viva Voce & Interview Guide</h1>
+
+  <div class="viva-box no-break">
+    <div class="viva-q">Q1: What is the fundamental difference between Deadlock and Starvation?</div>
+    <div class="viva-a">
+      In <strong>Deadlock</strong>, all processes in a cyclic wait are blocked; no CPU progress is made system-wide. In <strong>Starvation</strong>, system progress is actively occurring (other processes eat repeatedly), but one specific process is perpetually deprived of required resources due to scheduling bias or unfairness.
+    </div>
+  </div>
+
+  <div class="viva-box no-break">
+    <div class="viva-q">Q2: Why does Havender's Resource Ordering guarantee freedom from deadlock?</div>
+    <div class="viva-a">
+      By enforcing a strict total order ($F_0 < F_1 < F_2 < F_3 < F_4$), a circular dependency chain cannot mathematically exist. A cycle in a Wait-For Graph requires at least one transition from a higher-indexed resource to a lower-indexed resource while holding the higher one, which Havender's rule strictly prohibits.
+    </div>
+  </div>
+
+  <div class="viva-box no-break">
+    <div class="viva-q">Q3: How does the Waiter solution leverage the Pigeonhole Principle?</div>
+    <div class="viva-a">
+      With 5 forks and at most 4 seated philosophers (enforced by a counting semaphore initialized to 4), the pigeonhole distribution $\lceil 5 / 4 \rceil = 2$ guarantees that at least one philosopher will receive both forks, allowing them to eat and release resources back to the table.
+    </div>
+  </div>
+
+  <div class="viva-box no-break">
+    <div class="viva-q">Q4: What is Dijkstra's Safety Invariant in the Dining Philosophers Problem?</div>
+    <div class="viva-a">
+      For all $i \in \{0, \dots, N-1\}$: if $\text{State}(P_i) == \text{EATING}$, then $\text{State}(P_{(i-1)\%N}) \ne \text{EATING}$ and $\text{State}(P_{(i+1)\%N}) \ne \text{EATING}$. Two adjacent philosophers can never be in the EATING state simultaneously because each fork is mutually exclusive.
+    </div>
+  </div>
+
+  <div class="viva-box no-break">
+    <div class="viva-q">Q5: What is the difference between a Binary Semaphore and a Mutex?</div>
+    <div class="viva-a">
+      A <strong>Mutex</strong> enforces ownership: only the thread that locked the mutex is legally permitted to unlock it. A <strong>Binary Semaphore</strong> has no concept of ownership: any thread can execute <code>sem_post()</code> to wake up a thread blocked on <code>sem_wait()</code>, making it suitable for signaling between threads.
+    </div>
+  </div>
+
+  <div class="viva-box no-break">
+    <div class="viva-q">Q6: What is a Futex and why is it preferred in modern Linux kernels?</div>
+    <div class="viva-a">
+      A <strong>Futex</strong> (Fast Userspace Mutex) optimizes uncontended locks completely in user space using atomic CPU instructions (like <code>compare-and-swap</code>), avoiding expensive kernel system calls unless lock contention actually occurs.
+    </div>
+  </div>
+
+  <!-- SECTION 7: RUN & BUILD GUIDE -->
+  <div class="page-break"></div>
+  <h1>7. Setup, Build, and Execution Manual</h1>
+
+  <h2>7.1 Prerequisites</h2>
+  <ul>
+    <li>Node.js (v18.0.0 or higher recommended)</li>
+    <li>npm (v9.0.0 or higher)</li>
+    <li>Modern web browser (Google Chrome, Microsoft Edge, Mozilla Firefox) with Web Speech API support</li>
+  </ul>
+
+  <h2>7.2 Running in Development Mode</h2>
+  <pre><code># 1. Install dependencies
+npm install
+
+# 2. Start Vite Hot Module Replacement (HMR) dev server
+npm run dev
+# Vite runs at: http://localhost:5173</code></pre>
+
+  <h2>7.3 Running the Fullstack Express Server</h2>
+  <pre><code># 1. Compile production bundle
+npm run build
+
+# 2. Launch Express server with REST API + SSE
+npm start
+# Server listens on: http://localhost:3000</code></pre>
+
+  <h2>7.4 REST & SSE API Reference</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Endpoint</th>
+        <th>Method</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>/api/status</code></td>
+        <td><code>GET</code></td>
+        <td>Returns JSON server telemetry, connected client count, and philosopher states.</td>
+      </tr>
+      <tr>
+        <td><code>/api/events</code></td>
+        <td><code>GET</code></td>
+        <td>Server-Sent Events (SSE) stream broadcasting live simulation state changes.</td>
+      </tr>
+      <tr>
+        <td><code>/api/action</code></td>
+        <td><code>POST</code></td>
+        <td>Dispatches manual philosopher actions (<code>take_left</code>, <code>take_right</code>, <code>eat</code>, <code>think</code>).</td>
+      </tr>
+      <tr>
+        <td><code>/api/scenarios/reset</code></td>
+        <td><code>POST</code></td>
+        <td>Resets simulation state, releases all forks, and clears deadlock flags.</td>
+      </tr>
+      <tr>
+        <td><code>/api/education</code></td>
+        <td><code>GET</code></td>
+        <td>Delivers Coffman condition definitions and viva questions for educational client consumption.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <div>Dining Philosophers Café • Comprehensive Project Report</div>
+    <div>CHARUSAT SEM 5 OS Project • Keyur Rana</div>
+  </div>
+
+</body>
+</html>

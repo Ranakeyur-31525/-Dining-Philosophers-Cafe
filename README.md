@@ -3,7 +3,7 @@
 
 > **Course**: Operating Systems (SEM 5)  
 > **Institution**: CHARUSAT University  
-> **Author**: Keyur Rana ([@Ranakeyur-31525](https://github.com/Ranakeyur-31525))  
+> **Author / Lead**: Janki Panchal ([@JankiPanchal216](https://github.com/JankiPanchal216))  
 > **Repository**: [https://github.com/Ranakeyur-31525/-Dining-Philosophers-Cafe](https://github.com/Ranakeyur-31525/-Dining-Philosophers-Cafe)  
 > **Explanation Report (PDF)**: [Dining_Philosophers_Cafe_Explanation.pdf](./Dining_Philosophers_Cafe_Explanation.pdf)  
 > **Frontend**: React 19, Tailwind CSS, Lucide React, Vite  
